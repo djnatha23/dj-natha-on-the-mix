@@ -205,26 +205,28 @@ footer a{color:var(--muted);text-decoration:none}
       </ul>
     </div>
     <div class="form-box">
-      <form id="bookingForm">
+      <form id="bookingForm" name="booking" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="booking">
+        <p class="hidden" style="display:none"><label>No llenar: <input name="bot-field"></label></p>
         <div class="form-grid">
-          <div class="full"><label>Nombre completo</label><input id="bName" required></div>
-          <div><label>Correo electrónico</label><input id="bEmail" type="email" required></div>
-          <div><label>Número de teléfono</label><input id="bPhone" type="tel" required></div>
-          <div class="full"><label>Dirección del evento</label><input id="bAddress" required placeholder="Calle, número, sector, ciudad"></div>
+          <div class="full"><label>Nombre completo</label><input id="bName" name="name" required></div>
+          <div><label>Correo electrónico</label><input id="bEmail" name="email" type="email" required></div>
+          <div><label>Número de teléfono</label><input id="bPhone" name="phone" type="tel" required></div>
+          <div class="full"><label>Dirección del evento</label><input id="bAddress" name="address" required placeholder="Calle, número, sector, ciudad"></div>
           <div><label>Tipo de servicio</label>
-            <select id="bService">
+            <select id="bService" name="service">
               <option value="DJ">Servicio de DJ</option>
               <option value="Bocinas">Renta de bocinas</option>
               <option value="DJ + Bocinas">DJ + Bocinas</option>
             </select>
           </div>
-          <div><label>Cantidad de personas</label><input id="bGuests" type="number" min="1" placeholder="Ej.: 50" required></div>
-          <div><label>Fecha del evento</label><input id="bDate" type="date" required></div>
+          <div><label>Cantidad de personas</label><input id="bGuests" name="guests" type="number" min="1" placeholder="Ej.: 50" required></div>
+          <div><label>Fecha del evento</label><input id="bDate" name="date" type="date" required></div>
           <div><label>Hora de inicio</label>
-            <select id="bTime" required><option value="">Selecciona la fecha primero</option></select>
+            <select id="bTime" name="time" required><option value="">Selecciona la fecha primero</option></select>
           </div>
           <div class="full"><label>Horas contratadas</label>
-            <select id="bHours">
+            <select id="bHours" name="hours">
               <option value="2">2 horas — RD$3,000</option>
               <option value="3">3 horas — RD$3,500</option>
               <option value="4">4 horas — RD$6,000</option>
@@ -232,7 +234,7 @@ footer a{color:var(--muted);text-decoration:none}
               <option value="6">6 horas — RD$9,500</option>
             </select>
           </div>
-          <div class="full"><label>Notas adicionales (opcional)</label><textarea id="bNotes" placeholder="Detalles del evento, referencias del lugar, etc."></textarea></div>
+          <div class="full"><label>Notas adicionales (opcional)</label><textarea id="bNotes" name="notes" placeholder="Detalles del evento, referencias del lugar, etc."></textarea></div>
         </div>
         <button type="submit" class="btn" style="width:100%;margin-top:20px;justify-content:center">📅 Confirmar reserva</button>
         <p class="notice" id="bookMsg"></p>
@@ -304,7 +306,7 @@ function renderTimeOptions(){
 dateEl.addEventListener('change',renderTimeOptions);
 renderTimeOptions();
 
-form.addEventListener('submit',e=>{
+form.addEventListener('submit',async e=>{
  e.preventDefault();
  const date=dateEl.value, time=timeEl.value;
  if(!date||!time){msg.className='notice';msg.textContent='Selecciona fecha y hora disponibles.';return}
@@ -320,6 +322,17 @@ form.addEventListener('submit',e=>{
    address:$('bAddress').value, service:$('bService').value, guests:$('bGuests').value,
    date, time, hours:$('bHours').value, notes:$('bNotes').value
  };
+ try{
+   await fetch('/',{
+     method:'POST',
+     headers:{'Content-Type':'application/x-www-form-urlencoded'},
+     body:new URLSearchParams(new FormData(form)).toString()
+   });
+ }catch(err){
+   msg.className='notice';
+   msg.textContent='No pudimos enviar la solicitud. Intenta de nuevo o escríbenos por WhatsApp.';
+   return;
+ }
  bookings.push(b);
  saveBookings(bookings);
  msg.className='notice ok';
